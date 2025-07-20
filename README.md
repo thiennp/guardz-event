@@ -24,6 +24,23 @@ npm install guardz-event guardz@^1.7.0
 
 **Note:** This library requires guardz version 1.7.0 or higher for optimal performance and type safety.
 
+## Related Packages
+
+This library is part of the **guardz ecosystem** - a comprehensive suite of type-safe validation tools:
+
+- **[guardz](https://github.com/thiennp/guardz)** - Core type guard library with runtime validation
+- **[guardz-generator](https://github.com/thiennp/guardz-generator)** - Generate type guards from TypeScript interfaces and schemas
+- **[guardz-axios](https://github.com/thiennp/guardz-axios)** - Type-safe HTTP client with runtime validation
+- **[guardz-event](https://github.com/thiennp/guardz-event)** - Type-safe event handling with runtime validation (this package)
+
+### Ecosystem Benefits
+
+- **Consistent API**: All packages follow the same design patterns and conventions
+- **Type Safety**: Full TypeScript support with automatic type inference
+- **Runtime Validation**: Comprehensive validation at runtime for production safety
+- **Performance Optimized**: Minimal overhead with synchronous validation
+- **Developer Experience**: Excellent IDE support and error messages
+
 ## Quick Start
 
 ### 🎯 **Recommended: Ergonomic API**

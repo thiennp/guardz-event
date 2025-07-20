@@ -19,10 +19,18 @@
     "postmessage",
     "eventstream",
     "dom-events",
-    "security"
+    "security",
+    "guardz",
+    "guardz-ecosystem",
+    "runtime-validation",
+    "type-safe"
   ],
   "author": "Thien Nguyen",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thiennp/guardz-event.git"
+  },
   "bugs": {
     "url": "https://github.com/thiennp/guardz-event/issues"
   },

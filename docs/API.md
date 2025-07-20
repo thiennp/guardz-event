@@ -4,6 +4,30 @@
 
 Guardz Event provides multiple API patterns for safe event handling with runtime validation. The library offers both ergonomic callback-based APIs and legacy result-based APIs to accommodate different use cases and preferences.
 
+## Guardz Ecosystem
+
+This library is part of the **guardz ecosystem** - a comprehensive suite of type-safe validation tools:
+
+- **[guardz](https://github.com/thiennp/guardz)** - Core type guard library with runtime validation
+- **[guardz-generator](https://github.com/thiennp/guardz-generator)** - Generate type guards from TypeScript interfaces and schemas
+- **[guardz-axios](https://github.com/thiennp/guardz-axios)** - Type-safe HTTP client with runtime validation
+- **[guardz-event](https://github.com/thiennp/guardz-event)** - Type-safe event handling with runtime validation (this package)
+
+### Ecosystem Integration
+
+All guardz packages work seamlessly together:
+
+```typescript
+// Generate type guards from your interfaces
+import { generateTypeGuard } from 'guardz-generator';
+
+// Use generated guards with guardz-event
+import { safePostMessageListener } from 'guardz-event';
+
+// Use the same guards with guardz-axios
+import { createSafeAxios } from 'guardz-axios';
+```
+
 ## API Patterns
 
 ### 🎯 **Pattern 1: Ergonomic Event Listeners (Recommended)**
