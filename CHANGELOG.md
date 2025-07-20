@@ -5,10 +5,31 @@ All notable changes to Guardz Event will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2024-12-19
+## [1.8.0] - 2024-12-19
 
 ### Changed 🔄
 
+- **Version Alignment** - Updated package version to 1.8.0 to match guardz ecosystem version
+- **Dependency Upgrade** - Upgraded guardz peer dependency from ^1.7.0 to ^1.8.0
+- **API Consistency** - Fixed parameter order inconsistency in `guardWithTolerance` usage across PostMessage and WebSocket listeners
+- **Enhanced Type Safety** - Leveraging new guardz 1.8.0 features for improved type validation
+- **Performance Improvements** - Utilizing guardz 1.8.0 optimizations for better runtime performance
+
+### Fixed 🔧
+
+- **Parameter Order Fix** - Corrected `guardWithTolerance` parameter order in PostMessage and WebSocket listeners to match the correct API signature
+- **API Consistency** - Ensured consistent usage of guardz APIs across all event handlers
+
+### Security 🔒
+
+- **Enhanced Security Validation** - Improved security validation with guardz 1.8.0 features
+- **Better Error Handling** - Enhanced error handling with updated guardz APIs
+
+## [1.7.0] - 2024-12-19
+
+### Changed 🔄
+
+- **Version Alignment** - Updated package version to 1.7.0 to match guardz ecosystem version
 - **Dependency Upgrade** - Upgraded guardz peer dependency from ^1.4.1 to ^1.7.0
 - **Enhanced Type Safety** - Leveraging new guardz 1.7.0 features for improved type validation
 - **Performance Improvements** - Utilizing guardz 1.7.0 optimizations for better runtime performance

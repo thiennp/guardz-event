@@ -93,4 +93,4 @@ global.EventSource = class EventSource extends EventTarget {
   removeEventListener(type: string, listener: EventListener) {
     super.removeEventListener(type, listener);
   }
-} as any; 
+} as any;

@@ -1,7 +1,6 @@
 import { guardWithTolerance } from 'guardz';
-import type { TypeGuardFn } from 'guardz';
-import { Status } from '../types/status-types';
-import { EventResult, SafeEventConfig, ErrorContext } from './safe-event-never-throws';
+import { Status } from '../domain/event/Status';
+import type { EventResult, SafeEventConfig } from './safe-event-never-throws';
 
 // ===============================
 // Observer-based Event Sources
@@ -22,40 +21,47 @@ export function safeIntersectionObserver<T>(config: SafeEventConfig<T>) {
           boundingClientRect: entry.boundingClientRect,
           rootBounds: entry.rootBounds,
           target: entry.target,
-          time: entry.time
+          time: entry.time,
         };
 
         if (config.tolerance) {
-          const result = guardWithTolerance(data, config.guard);
-          const isValid = config.guard(result);
-          
-          if (isValid) {
-            return { status: Status.SUCCESS, data: result };
+          const result = guardWithTolerance(data, config.guard, {
+            identifier: 'intersection-data',
+            callbackOnError: error => {
+              if (config.onError) {
+                config.onError(error, {
+                  type: 'validation',
+                  eventType: 'intersection',
+                  originalError: error,
+                });
+              }
+            },
+          });
+
+          if (result) {
+            return { status: Status.SUCCESS, data: data as T };
           } else {
-            const errorMessage = `Validation failed: Data does not match expected type`;
-            if (config.onError) {
-              config.onError(errorMessage, {
-                type: 'validation',
-                eventType: 'intersection',
-                originalError: errorMessage
-              });
-            }
-            return { status: Status.SUCCESS, data: result };
+            return { status: Status.SUCCESS, data: data as T };
           }
         } else {
           if (config.guard(data)) {
             return { status: Status.SUCCESS, data };
           } else {
-            return { status: Status.ERROR, code: 500, message: 'Validation failed: Data does not match expected type' };
+            return {
+              status: Status.ERROR,
+              code: 500,
+              message: 'Validation failed: Data does not match expected type',
+            };
           }
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error occurred';
         if (config.onError) {
           config.onError(errorMessage, {
             type: 'unknown',
             eventType: 'intersection',
-            originalError: error
+            originalError: error,
           });
         }
         return { status: Status.ERROR, code: 500, message: errorMessage };
@@ -78,40 +84,47 @@ export function safeResizeObserver<T>(config: SafeEventConfig<T>) {
           borderBoxSize: entry.borderBoxSize,
           contentBoxSize: entry.contentBoxSize,
           devicePixelContentBoxSize: entry.devicePixelContentBoxSize,
-          target: entry.target
+          target: entry.target,
         };
 
         if (config.tolerance) {
-          const result = guardWithTolerance(data, config.guard);
-          const isValid = config.guard(result);
-          
-          if (isValid) {
-            return { status: Status.SUCCESS, data: result };
+          const result = guardWithTolerance(data, config.guard, {
+            identifier: 'resize-data',
+            callbackOnError: error => {
+              if (config.onError) {
+                config.onError(error, {
+                  type: 'validation',
+                  eventType: 'resize',
+                  originalError: error,
+                });
+              }
+            },
+          });
+
+          if (result) {
+            return { status: Status.SUCCESS, data: data as T };
           } else {
-            const errorMessage = `Validation failed: Data does not match expected type`;
-            if (config.onError) {
-              config.onError(errorMessage, {
-                type: 'validation',
-                eventType: 'resize',
-                originalError: errorMessage
-              });
-            }
-            return { status: Status.SUCCESS, data: result };
+            return { status: Status.SUCCESS, data: data as T };
           }
         } else {
           if (config.guard(data)) {
             return { status: Status.SUCCESS, data };
           } else {
-            return { status: Status.ERROR, code: 500, message: 'Validation failed: Data does not match expected type' };
+            return {
+              status: Status.ERROR,
+              code: 500,
+              message: 'Validation failed: Data does not match expected type',
+            };
           }
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error occurred';
         if (config.onError) {
           config.onError(errorMessage, {
             type: 'unknown',
             eventType: 'resize',
-            originalError: error
+            originalError: error,
           });
         }
         return { status: Status.ERROR, code: 500, message: errorMessage };
@@ -138,13 +151,13 @@ export function safeMutationObserver<T>(config: SafeEventConfig<T>) {
           nextSibling: mutation.nextSibling,
           attributeName: mutation.attributeName,
           attributeNamespace: mutation.attributeNamespace,
-          oldValue: mutation.oldValue
+          oldValue: mutation.oldValue,
         };
 
         if (config.tolerance) {
           const result = guardWithTolerance(data, config.guard);
           const isValid = config.guard(result);
-          
+
           if (isValid) {
             return { status: Status.SUCCESS, data: result };
           } else {
@@ -153,7 +166,7 @@ export function safeMutationObserver<T>(config: SafeEventConfig<T>) {
               config.onError(errorMessage, {
                 type: 'validation',
                 eventType: 'mutation',
-                originalError: errorMessage
+                originalError: errorMessage,
               });
             }
             return { status: Status.SUCCESS, data: result };
@@ -162,16 +175,21 @@ export function safeMutationObserver<T>(config: SafeEventConfig<T>) {
           if (config.guard(data)) {
             return { status: Status.SUCCESS, data };
           } else {
-            return { status: Status.ERROR, code: 500, message: 'Validation failed: Data does not match expected type' };
+            return {
+              status: Status.ERROR,
+              code: 500,
+              message: 'Validation failed: Data does not match expected type',
+            };
           }
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error occurred';
         if (config.onError) {
           config.onError(errorMessage, {
             type: 'unknown',
             eventType: 'mutation',
-            originalError: error
+            originalError: error,
           });
         }
         return { status: Status.ERROR, code: 500, message: errorMessage };
@@ -187,41 +205,50 @@ export function safeMutationObserver<T>(config: SafeEventConfig<T>) {
  */
 export function safePerformanceObserver<T>(config: SafeEventConfig<T>) {
   return (list: PerformanceObserverEntryList): EventResult<T>[] => {
-    return list.getEntries().map(entry => {
+    return list.getEntries().map(() => {
       try {
         const data = {
           entries: list.getEntries(),
-          observer: list.observer
         };
 
         if (config.tolerance) {
-          const result = guardWithTolerance(config.guard, data);
-          if (result.valid) {
-            return { status: Status.SUCCESS, data: result.data };
+          const result = guardWithTolerance(data, config.guard, {
+            identifier: 'performance-data',
+            callbackOnError: error => {
+              if (config.onError) {
+                config.onError(error, {
+                  type: 'validation',
+                  eventType: 'performance',
+                  originalError: error,
+                });
+              }
+            },
+          });
+
+          if (result) {
+            return { status: Status.SUCCESS, data: data as T };
           } else {
-            if (config.onError) {
-              config.onError(result.error, {
-                type: 'validation',
-                eventType: 'performance',
-                originalError: result.error
-              });
-            }
-            return { status: Status.ERROR, code: 500, message: `Validation failed: ${result.error}` };
+            return { status: Status.SUCCESS, data: data as T };
           }
         } else {
           if (config.guard(data)) {
             return { status: Status.SUCCESS, data };
           } else {
-            return { status: Status.ERROR, code: 500, message: 'Validation failed: Data does not match expected type' };
+            return {
+              status: Status.ERROR,
+              code: 500,
+              message: 'Validation failed: Data does not match expected type',
+            };
           }
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error occurred';
         if (config.onError) {
           config.onError(errorMessage, {
             type: 'unknown',
             eventType: 'performance',
-            originalError: error
+            originalError: error,
           });
         }
         return { status: Status.ERROR, code: 500, message: errorMessage };
@@ -244,37 +271,47 @@ export function safeGeolocation<T>(config: SafeEventConfig<T>) {
     try {
       const data = {
         coords: position.coords,
-        timestamp: position.timestamp
+        timestamp: position.timestamp,
       };
 
       if (config.tolerance) {
-        const result = guardWithTolerance(config.guard, data);
-        if (result.valid) {
-          return { status: Status.SUCCESS, data: result.data };
+        const result = guardWithTolerance(data, config.guard, {
+          identifier: 'geolocation-data',
+          callbackOnError: error => {
+            if (config.onError) {
+              config.onError(error, {
+                type: 'validation',
+                eventType: 'geolocation',
+                originalError: error,
+              });
+            }
+          },
+        });
+
+        if (result) {
+          return { status: Status.SUCCESS, data: data as T };
         } else {
-          if (config.onError) {
-            config.onError(result.error, {
-              type: 'validation',
-              eventType: 'geolocation',
-              originalError: result.error
-            });
-          }
-          return { status: Status.ERROR, code: 500, message: `Validation failed: ${result.error}` };
+          return { status: Status.SUCCESS, data: data as T };
         }
       } else {
         if (config.guard(data)) {
           return { status: Status.SUCCESS, data };
         } else {
-          return { status: Status.ERROR, code: 500, message: 'Validation failed: Data does not match expected type' };
+          return {
+            status: Status.ERROR,
+            code: 500,
+            message: 'Validation failed: Data does not match expected type',
+          };
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
       if (config.onError) {
         config.onError(errorMessage, {
           type: 'unknown',
           eventType: 'geolocation',
-          originalError: error
+          originalError: error,
         });
       }
       return { status: Status.ERROR, code: 500, message: errorMessage };
@@ -294,37 +331,47 @@ export function safeDeviceOrientation<T>(config: SafeEventConfig<T>) {
         alpha: event.alpha,
         beta: event.beta,
         gamma: event.gamma,
-        absolute: event.absolute
+        absolute: event.absolute,
       };
 
       if (config.tolerance) {
-        const result = guardWithTolerance(config.guard, data);
-        if (result.valid) {
-          return { status: Status.SUCCESS, data: result.data };
+        const result = guardWithTolerance(data, config.guard, {
+          identifier: 'deviceorientation-data',
+          callbackOnError: error => {
+            if (config.onError) {
+              config.onError(error, {
+                type: 'validation',
+                eventType: 'deviceorientation',
+                originalError: error,
+              });
+            }
+          },
+        });
+
+        if (result) {
+          return { status: Status.SUCCESS, data: data as T };
         } else {
-          if (config.onError) {
-            config.onError(result.error, {
-              type: 'validation',
-              eventType: 'deviceorientation',
-              originalError: result.error
-            });
-          }
-          return { status: Status.ERROR, code: 500, message: `Validation failed: ${result.error}` };
+          return { status: Status.SUCCESS, data: data as T };
         }
       } else {
         if (config.guard(data)) {
           return { status: Status.SUCCESS, data };
         } else {
-          return { status: Status.ERROR, code: 500, message: 'Validation failed: Data does not match expected type' };
+          return {
+            status: Status.ERROR,
+            code: 500,
+            message: 'Validation failed: Data does not match expected type',
+          };
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
       if (config.onError) {
         config.onError(errorMessage, {
           type: 'unknown',
           eventType: 'deviceorientation',
-          originalError: error
+          originalError: error,
         });
       }
       return { status: Status.ERROR, code: 500, message: errorMessage };
@@ -344,37 +391,47 @@ export function safeDeviceMotion<T>(config: SafeEventConfig<T>) {
         acceleration: event.acceleration,
         accelerationIncludingGravity: event.accelerationIncludingGravity,
         rotationRate: event.rotationRate,
-        interval: event.interval
+        interval: event.interval,
       };
 
       if (config.tolerance) {
-        const result = guardWithTolerance(config.guard, data);
-        if (result.valid) {
-          return { status: Status.SUCCESS, data: result.data };
+        const result = guardWithTolerance(data, config.guard, {
+          identifier: 'devicemotion-data',
+          callbackOnError: error => {
+            if (config.onError) {
+              config.onError(error, {
+                type: 'validation',
+                eventType: 'devicemotion',
+                originalError: error,
+              });
+            }
+          },
+        });
+
+        if (result) {
+          return { status: Status.SUCCESS, data: data as T };
         } else {
-          if (config.onError) {
-            config.onError(result.error, {
-              type: 'validation',
-              eventType: 'devicemotion',
-              originalError: result.error
-            });
-          }
-          return { status: Status.ERROR, code: 500, message: `Validation failed: ${result.error}` };
+          return { status: Status.SUCCESS, data: data as T };
         }
       } else {
         if (config.guard(data)) {
           return { status: Status.SUCCESS, data };
         } else {
-          return { status: Status.ERROR, code: 500, message: 'Validation failed: Data does not match expected type' };
+          return {
+            status: Status.ERROR,
+            code: 500,
+            message: 'Validation failed: Data does not match expected type',
+          };
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
       if (config.onError) {
         config.onError(errorMessage, {
           type: 'unknown',
           eventType: 'devicemotion',
-          originalError: error
+          originalError: error,
         });
       }
       return { status: Status.ERROR, code: 500, message: errorMessage };
@@ -392,43 +449,53 @@ export function safeDeviceMotion<T>(config: SafeEventConfig<T>) {
  *        self.addEventListener('message', safeSWHandler);
  */
 export function safeServiceWorkerMessage<T>(config: SafeEventConfig<T>) {
-  return (event: ExtendableMessageEvent): EventResult<T> => {
+  return (event: MessageEvent): EventResult<T> => {
     try {
       const data = {
         data: event.data,
         origin: event.origin,
         source: event.source,
-        ports: event.ports
+        ports: event.ports,
       };
 
       if (config.tolerance) {
-        const result = guardWithTolerance(config.guard, data);
-        if (result.valid) {
-          return { status: Status.SUCCESS, data: result.data };
+        const result = guardWithTolerance(data, config.guard, {
+          identifier: 'serviceworker-data',
+          callbackOnError: error => {
+            if (config.onError) {
+              config.onError(error, {
+                type: 'validation',
+                eventType: 'serviceworker',
+                originalError: error,
+              });
+            }
+          },
+        });
+
+        if (result) {
+          return { status: Status.SUCCESS, data: data as T };
         } else {
-          if (config.onError) {
-            config.onError(result.error, {
-              type: 'validation',
-              eventType: 'serviceworker',
-              originalError: result.error
-            });
-          }
-          return { status: Status.ERROR, code: 500, message: `Validation failed: ${result.error}` };
+          return { status: Status.SUCCESS, data: data as T };
         }
       } else {
         if (config.guard(data)) {
           return { status: Status.SUCCESS, data };
         } else {
-          return { status: Status.ERROR, code: 500, message: 'Validation failed: Data does not match expected type' };
+          return {
+            status: Status.ERROR,
+            code: 500,
+            message: 'Validation failed: Data does not match expected type',
+          };
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
       if (config.onError) {
         config.onError(errorMessage, {
           type: 'unknown',
           eventType: 'serviceworker',
-          originalError: error
+          originalError: error,
         });
       }
       return { status: Status.ERROR, code: 500, message: errorMessage };
@@ -451,37 +518,47 @@ export function safeBroadcastChannel<T>(config: SafeEventConfig<T>) {
       const data = {
         data: event.data,
         origin: event.origin,
-        source: event.source
+        source: event.source,
       };
 
       if (config.tolerance) {
-        const result = guardWithTolerance(config.guard, data);
-        if (result.valid) {
-          return { status: Status.SUCCESS, data: result.data };
+        const result = guardWithTolerance(data, config.guard, {
+          identifier: 'broadcast-data',
+          callbackOnError: error => {
+            if (config.onError) {
+              config.onError(error, {
+                type: 'validation',
+                eventType: 'broadcast',
+                originalError: error,
+              });
+            }
+          },
+        });
+
+        if (result) {
+          return { status: Status.SUCCESS, data: data as T };
         } else {
-          if (config.onError) {
-            config.onError(result.error, {
-              type: 'validation',
-              eventType: 'broadcast',
-              originalError: result.error
-            });
-          }
-          return { status: Status.ERROR, code: 500, message: `Validation failed: ${result.error}` };
+          return { status: Status.SUCCESS, data: data as T };
         }
       } else {
         if (config.guard(data)) {
           return { status: Status.SUCCESS, data };
         } else {
-          return { status: Status.ERROR, code: 500, message: 'Validation failed: Data does not match expected type' };
+          return {
+            status: Status.ERROR,
+            code: 500,
+            message: 'Validation failed: Data does not match expected type',
+          };
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
       if (config.onError) {
         config.onError(errorMessage, {
           type: 'unknown',
           eventType: 'broadcast',
-          originalError: error
+          originalError: error,
         });
       }
       return { status: Status.ERROR, code: 500, message: errorMessage };
@@ -503,37 +580,47 @@ export function safePaymentRequest<T>(config: SafeEventConfig<T>) {
     try {
       const data = {
         methodName: event.methodName,
-        methodDetails: event.methodDetails
+        methodDetails: event.methodDetails,
       };
 
       if (config.tolerance) {
-        const result = guardWithTolerance(config.guard, data);
-        if (result.valid) {
-          return { status: Status.SUCCESS, data: result.data };
+        const result = guardWithTolerance(data, config.guard, {
+          identifier: 'payment-data',
+          callbackOnError: error => {
+            if (config.onError) {
+              config.onError(error, {
+                type: 'validation',
+                eventType: 'payment',
+                originalError: error,
+              });
+            }
+          },
+        });
+
+        if (result) {
+          return { status: Status.SUCCESS, data: data as T };
         } else {
-          if (config.onError) {
-            config.onError(result.error, {
-              type: 'validation',
-              eventType: 'payment',
-              originalError: result.error
-            });
-          }
-          return { status: Status.ERROR, code: 500, message: `Validation failed: ${result.error}` };
+          return { status: Status.SUCCESS, data: data as T };
         }
       } else {
         if (config.guard(data)) {
           return { status: Status.SUCCESS, data };
         } else {
-          return { status: Status.ERROR, code: 500, message: 'Validation failed: Data does not match expected type' };
+          return {
+            status: Status.ERROR,
+            code: 500,
+            message: 'Validation failed: Data does not match expected type',
+          };
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
       if (config.onError) {
         config.onError(errorMessage, {
           type: 'unknown',
           eventType: 'payment',
-          originalError: error
+          originalError: error,
         });
       }
       return { status: Status.ERROR, code: 500, message: errorMessage };
@@ -551,48 +638,65 @@ export function safePaymentRequest<T>(config: SafeEventConfig<T>) {
  *        battery.addEventListener('levelchange', safeBatteryHandler);
  */
 export function safeBatteryStatus<T>(config: SafeEventConfig<T>) {
-  return (event: Event): EventResult<T> => {
+  return async (): Promise<EventResult<T>> => {
     try {
-      const battery = (navigator as any).getBattery?.();
-      if (!battery) {
-        return { status: Status.ERROR, code: 500, message: 'Battery API not supported' };
+      const batteryPromise = (
+        navigator as Navigator & { getBattery?: () => Promise<any> }
+      ).getBattery?.();
+      if (!batteryPromise) {
+        return {
+          status: Status.ERROR,
+          code: 500,
+          message: 'Battery API not supported',
+        };
       }
 
+      const battery = await batteryPromise;
       const data = {
         level: battery.level,
         charging: battery.charging,
         chargingTime: battery.chargingTime,
-        dischargingTime: battery.dischargingTime
+        dischargingTime: battery.dischargingTime,
       };
 
       if (config.tolerance) {
-        const result = guardWithTolerance(config.guard, data);
-        if (result.valid) {
-          return { status: Status.SUCCESS, data: result.data };
+        const result = guardWithTolerance(data, config.guard, {
+          identifier: 'battery-data',
+          callbackOnError: error => {
+            if (config.onError) {
+              config.onError(error, {
+                type: 'validation',
+                eventType: 'battery',
+                originalError: error,
+              });
+            }
+          },
+        });
+
+        if (result) {
+          return { status: Status.SUCCESS, data: data as T };
         } else {
-          if (config.onError) {
-            config.onError(result.error, {
-              type: 'validation',
-              eventType: 'battery',
-              originalError: result.error
-            });
-          }
-          return { status: Status.ERROR, code: 500, message: `Validation failed: ${result.error}` };
+          return { status: Status.SUCCESS, data: data as T };
         }
       } else {
         if (config.guard(data)) {
           return { status: Status.SUCCESS, data };
         } else {
-          return { status: Status.ERROR, code: 500, message: 'Validation failed: Data does not match expected type' };
+          return {
+            status: Status.ERROR,
+            code: 500,
+            message: 'Validation failed: Data does not match expected type',
+          };
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
       if (config.onError) {
         config.onError(errorMessage, {
           type: 'unknown',
           eventType: 'battery',
-          originalError: error
+          originalError: error,
         });
       }
       return { status: Status.ERROR, code: 500, message: errorMessage };
@@ -610,51 +714,68 @@ export function safeBatteryStatus<T>(config: SafeEventConfig<T>) {
  *        connection.addEventListener('change', safeNetworkHandler);
  */
 export function safeNetworkInformation<T>(config: SafeEventConfig<T>) {
-  return (event: Event): EventResult<T> => {
+  return (): EventResult<T> => {
     try {
-      const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+      const connection =
+        (navigator as Navigator & { connection?: any }).connection ||
+        (navigator as Navigator & { mozConnection?: any }).mozConnection ||
+        (navigator as Navigator & { webkitConnection?: any }).webkitConnection;
       if (!connection) {
-        return { status: Status.ERROR, code: 500, message: 'Network Information API not supported' };
+        return {
+          status: Status.ERROR,
+          code: 500,
+          message: 'Network Information API not supported',
+        };
       }
 
       const data = {
         effectiveType: connection.effectiveType,
         downlink: connection.downlink,
         rtt: connection.rtt,
-        saveData: connection.saveData
+        saveData: connection.saveData,
       };
 
       if (config.tolerance) {
-        const result = guardWithTolerance(config.guard, data);
-        if (result.valid) {
-          return { status: Status.SUCCESS, data: result.data };
+        const result = guardWithTolerance(data, config.guard, {
+          identifier: 'network-data',
+          callbackOnError: error => {
+            if (config.onError) {
+              config.onError(error, {
+                type: 'validation',
+                eventType: 'network',
+                originalError: error,
+              });
+            }
+          },
+        });
+
+        if (result) {
+          return { status: Status.SUCCESS, data: data as T };
         } else {
-          if (config.onError) {
-            config.onError(result.error, {
-              type: 'validation',
-              eventType: 'network',
-              originalError: result.error
-            });
-          }
-          return { status: Status.ERROR, code: 500, message: `Validation failed: ${result.error}` };
+          return { status: Status.SUCCESS, data: data as T };
         }
       } else {
         if (config.guard(data)) {
           return { status: Status.SUCCESS, data };
         } else {
-          return { status: Status.ERROR, code: 500, message: 'Validation failed: Data does not match expected type' };
+          return {
+            status: Status.ERROR,
+            code: 500,
+            message: 'Validation failed: Data does not match expected type',
+          };
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
       if (config.onError) {
         config.onError(errorMessage, {
           type: 'unknown',
           eventType: 'network',
-          originalError: error
+          originalError: error,
         });
       }
       return { status: Status.ERROR, code: 500, message: errorMessage };
     }
   };
-} 
+}

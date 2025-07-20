@@ -25,10 +25,6 @@
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts",
-    "src/utils/additional-sources.ts",
-    "src/types/event-types.ts"
+    "dist"
   ]
 } 
