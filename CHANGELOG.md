@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed 🔄
+
+- **Dependency Upgrade** - Upgraded guardz peer dependency from ^1.4.1 to ^1.7.0
+- **Enhanced Type Safety** - Leveraging new guardz 1.7.0 features for improved type validation
+- **Performance Improvements** - Utilizing guardz 1.7.0 optimizations for better runtime performance
+
 ### Added 🎉
 
 - **New Ergonomic API** - Callback-based event listeners for cleaner, more intuitive usage

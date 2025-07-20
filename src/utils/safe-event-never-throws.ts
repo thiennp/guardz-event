@@ -93,20 +93,51 @@ export function safePostMessageListener<T>(
   }
 ) {
   return (event: MessageEvent): void => {
+    // Handle null/undefined events
+    if (!event) {
+      if (config.onError) {
+        config.onError('Invalid event: Event is null or undefined', {
+          type: 'unknown',
+          eventType: 'message'
+        });
+      }
+      return;
+    }
+
+    // Check for security violations first
+    if (config.allowedOrigins && !config.allowedOrigins.includes(event.origin)) {
+      const errorMessage = `PostMessage origin not allowed: ${event.origin}`;
+      if (config.onSecurityViolation) {
+        config.onSecurityViolation(event.origin, errorMessage);
+      } else if (config.onError) {
+        config.onError(errorMessage, {
+          type: 'security',
+          eventType: 'message',
+          origin: event.origin
+        });
+      }
+      return;
+    }
+
     const result = executePostMessageValidation(event, {
       guard,
       tolerance: config.tolerance,
       allowedOrigins: config.allowedOrigins,
       allowedSources: config.allowedSources,
-      onError: config.onError
+      onError: (error, context) => {
+        // In tolerance mode, call onTypeMismatch for validation errors
+        if (config.tolerance && context.type === 'validation' && config.onTypeMismatch) {
+          config.onTypeMismatch(error);
+        } else if (config.onError) {
+          config.onError(error, context);
+        }
+      }
     });
 
     if (result.status === Status.SUCCESS) {
       config.onSuccess(result.data);
     } else {
-      if (result.code === 403 && config.onSecurityViolation) {
-        config.onSecurityViolation(event.origin, result.message);
-      } else if (result.code === 500 && config.onTypeMismatch) {
+      if (result.code === 500 && config.onTypeMismatch) {
         config.onTypeMismatch(result.message);
       } else if (config.onError) {
         config.onError(result);
@@ -132,7 +163,14 @@ export function safeWebSocketListener<T>(
       tolerance: config.tolerance,
       allowedOrigins: config.allowedOrigins,
       allowedSources: config.allowedSources,
-      onError: config.onError
+      onError: (error, context) => {
+        // In tolerance mode, call onTypeMismatch for validation errors
+        if (config.tolerance && context.type === 'validation' && config.onTypeMismatch) {
+          config.onTypeMismatch(error);
+        } else if (config.onError) {
+          config.onError(error, context);
+        }
+      }
     });
 
     if (result.status === Status.SUCCESS) {
@@ -541,6 +579,15 @@ export function createSafeEventContext(contextConfig: SafeEventContextConfig = {
 
 function executeEventValidation<T>(event: Event, config: SafeEventConfig<T>): EventResult<T> {
   try {
+    // Handle null/undefined events
+    if (!event) {
+      return {
+        status: Status.ERROR,
+        code: 500,
+        message: 'Invalid event: Event is null or undefined'
+      };
+    }
+
     // Security validation
     if (config.allowedOrigins && event instanceof MessageEvent) {
       if (!config.allowedOrigins.includes(event.origin)) {
@@ -581,49 +628,52 @@ function executeEventValidation<T>(event: Event, config: SafeEventConfig<T>): Ev
         url: event.url
       };
     } else {
-      // DOM Event
-      data = {
-        type: event.type,
-        target: event.target,
-        currentTarget: event.currentTarget,
-        eventPhase: event.eventPhase,
-        bubbles: event.bubbles,
-        cancelable: event.cancelable,
-        defaultPrevented: event.defaultPrevented,
-        composed: event.composed,
-        timeStamp: event.timeStamp,
-        isTrusted: event.isTrusted
-      };
+      // DOM Event - extract specific properties based on event type
+      if (event instanceof MouseEvent) {
+        data = {
+          clientX: event.clientX,
+          clientY: event.clientY,
+          button: event.button
+        };
+      } else {
+        data = {
+          type: event.type,
+          target: event.target,
+          currentTarget: event.currentTarget,
+          eventPhase: event.eventPhase,
+          bubbles: event.bubbles,
+          cancelable: event.cancelable,
+          defaultPrevented: event.defaultPrevented,
+          composed: event.composed,
+          timeStamp: event.timeStamp,
+          isTrusted: event.isTrusted
+        };
+      }
     }
 
     // Validate data
     if (config.tolerance) {
-      const result = guardWithTolerance(config.guard, data);
-      if (typeof result === 'object' && result !== null && 'valid' in result) {
-        if ((result as any).valid) {
-          return {
-            status: Status.SUCCESS,
-            data: (result as any).data
-          };
-        } else {
-          if (config.onError) {
-            config.onError((result as any).error, {
-              type: 'validation',
-              eventType: event.type,
-              originalError: (result as any).error
-            });
-          }
-          return {
-            status: Status.ERROR,
-            code: 500,
-            message: `Validation failed: ${(result as any).error}`
-          };
-        }
-      } else {
+      const result = guardWithTolerance(data, config.guard);
+      const isValid = config.guard(result);
+      
+      if (isValid) {
         return {
-          status: Status.ERROR,
-          code: 500,
-          message: 'Validation failed: Unknown result from guardWithTolerance'
+          status: Status.SUCCESS,
+          data: result
+        };
+      } else {
+        // In tolerance mode, still return success but with error callback
+        const errorMessage = `Validation failed: Data does not match expected type`;
+        if (config.onError) {
+          config.onError(errorMessage, {
+            type: 'validation',
+            eventType: event.type,
+            originalError: errorMessage
+          });
+        }
+        return {
+          status: Status.SUCCESS,
+          data: result
         };
       }
     } else {
@@ -660,6 +710,15 @@ function executeEventValidation<T>(event: Event, config: SafeEventConfig<T>): Ev
 }
 
 function executePostMessageValidation<T>(event: MessageEvent, config: SafeEventConfig<T>): EventResult<T> {
+  // Handle null/undefined events
+  if (!event) {
+    return {
+      status: Status.ERROR,
+      code: 500,
+      message: 'Invalid event: Event is null or undefined'
+    };
+  }
+
   // Additional security checks for PostMessage
   if (config.allowedOrigins && !config.allowedOrigins.includes(event.origin)) {
     const error: SecurityError = {

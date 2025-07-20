@@ -26,18 +26,21 @@ export function safeIntersectionObserver<T>(config: SafeEventConfig<T>) {
         };
 
         if (config.tolerance) {
-          const result = guardWithTolerance(config.guard, data);
-          if (result.valid) {
-            return { status: Status.SUCCESS, data: result.data };
+          const result = guardWithTolerance(data, config.guard);
+          const isValid = config.guard(result);
+          
+          if (isValid) {
+            return { status: Status.SUCCESS, data: result };
           } else {
+            const errorMessage = `Validation failed: Data does not match expected type`;
             if (config.onError) {
-              config.onError(result.error, {
+              config.onError(errorMessage, {
                 type: 'validation',
                 eventType: 'intersection',
-                originalError: result.error
+                originalError: errorMessage
               });
             }
-            return { status: Status.ERROR, code: 500, message: `Validation failed: ${result.error}` };
+            return { status: Status.SUCCESS, data: result };
           }
         } else {
           if (config.guard(data)) {
@@ -79,18 +82,21 @@ export function safeResizeObserver<T>(config: SafeEventConfig<T>) {
         };
 
         if (config.tolerance) {
-          const result = guardWithTolerance(config.guard, data);
-          if (result.valid) {
-            return { status: Status.SUCCESS, data: result.data };
+          const result = guardWithTolerance(data, config.guard);
+          const isValid = config.guard(result);
+          
+          if (isValid) {
+            return { status: Status.SUCCESS, data: result };
           } else {
+            const errorMessage = `Validation failed: Data does not match expected type`;
             if (config.onError) {
-              config.onError(result.error, {
+              config.onError(errorMessage, {
                 type: 'validation',
                 eventType: 'resize',
-                originalError: result.error
+                originalError: errorMessage
               });
             }
-            return { status: Status.ERROR, code: 500, message: `Validation failed: ${result.error}` };
+            return { status: Status.SUCCESS, data: result };
           }
         } else {
           if (config.guard(data)) {
@@ -136,18 +142,21 @@ export function safeMutationObserver<T>(config: SafeEventConfig<T>) {
         };
 
         if (config.tolerance) {
-          const result = guardWithTolerance(config.guard, data);
-          if (result.valid) {
-            return { status: Status.SUCCESS, data: result.data };
+          const result = guardWithTolerance(data, config.guard);
+          const isValid = config.guard(result);
+          
+          if (isValid) {
+            return { status: Status.SUCCESS, data: result };
           } else {
+            const errorMessage = `Validation failed: Data does not match expected type`;
             if (config.onError) {
-              config.onError(result.error, {
+              config.onError(errorMessage, {
                 type: 'validation',
                 eventType: 'mutation',
-                originalError: result.error
+                originalError: errorMessage
               });
             }
-            return { status: Status.ERROR, code: 500, message: `Validation failed: ${result.error}` };
+            return { status: Status.SUCCESS, data: result };
           }
         } else {
           if (config.guard(data)) {

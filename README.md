@@ -1,6 +1,6 @@
 # Guardz Event
 
-A type-safe event handling library with runtime validation using [guardz](https://github.com/your-org/guardz) for guarding unsafe data from 3rd parties and various event sources.
+A type-safe event handling library with runtime validation using [guardz](https://github.com/thiennp/guardz) for guarding unsafe data from 3rd parties and various event sources.
 
 ## Features
 
@@ -19,8 +19,10 @@ A type-safe event handling library with runtime validation using [guardz](https:
 ## Installation
 
 ```bash
-npm install guardz-event guardz
+npm install guardz-event guardz@^1.7.0
 ```
+
+**Note:** This library requires guardz version 1.7.0 or higher for optimal performance and type safety.
 
 ## Quick Start
 
