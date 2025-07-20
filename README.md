@@ -1,6 +1,6 @@
 # Guardz Event - Safe Event Handling Library
 
-A modern, type-safe event handling library that provides multiple ergonomic APIs for handling browser events with validation, security checks, and error handling.
+A modern, type-safe event handling library that provides multiple ergonomic APIs for handling browser events with validation, security checks, and error handling. Built on top of [guardz 1.9.0](https://www.npmjs.com/package/guardz) for robust runtime type validation.
 
 ## 🚀 Quick Start
 
@@ -238,6 +238,16 @@ window.addEventListener('message', onMessage(isChatMessage, {
   onError: handleError
 }));
 ```
+
+## 📦 Installation
+
+```bash
+npm install guardz-event guardz
+# or
+yarn add guardz-event guardz
+```
+
+**Note**: This library requires `guardz` as a peer dependency for runtime type validation.
 
 ## 📦 Bundle Size
 

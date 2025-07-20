@@ -5,6 +5,21 @@ All notable changes to Guardz Event will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2024-12-19
+
+### Changed 🔄
+
+- **Version Alignment** - Updated package version to 1.9.0 to match guardz ecosystem version
+- **Dependency Upgrade** - Upgraded guardz peer dependency from ^1.8.0 to ^1.9.0
+- **Enhanced Type Safety** - Leveraging new guardz 1.9.0 features for improved type validation
+- **Performance Improvements** - Utilizing guardz 1.9.0 optimizations for better runtime performance
+- **Ecosystem Alignment** - Maintains compatibility with latest guardz ecosystem packages
+
+### Security 🔒
+
+- **Enhanced Security Validation** - Improved security validation with guardz 1.9.0 features
+- **Better Error Handling** - Enhanced error handling with updated guardz APIs
+
 ## [1.8.0] - 2024-12-19
 
 ### Changed 🔄
