@@ -2,7 +2,6 @@
 // Core Type Definitions
 // ===============================
 export * from './types/status-types';
-export * from './types/event-types';
 
 // ===============================
 // Safe Event API
@@ -55,4 +54,5 @@ export {
 // ===============================
 // Additional Event Sources
 // ===============================
-export * from './utils/additional-sources'; 
+// Temporarily disabled due to guardz 1.7.0 compatibility
+// export * from './utils/additional-sources'; 

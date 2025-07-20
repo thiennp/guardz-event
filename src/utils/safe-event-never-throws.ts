@@ -1,9 +1,15 @@
 import { guardWithTolerance } from 'guardz';
 import type { TypeGuardFn, TypeGuardFnConfig } from 'guardz';
 import { Status } from '../types/status-types';
-import { EventData, EventError, SecurityError } from '../types/event-types';
 
 export { Status };
+
+// Local type definitions
+interface SecurityError {
+  code: 'SECURITY_ERROR';
+  message: string;
+  origin: string;
+}
 
 export type EventResult<T> = 
   | { status: Status.SUCCESS; data: T }
