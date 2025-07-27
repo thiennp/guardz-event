@@ -5,6 +5,38 @@ All notable changes to Guardz Event will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.3] - 2024-12-19
+
+### Changed 🔄
+
+- **Version Alignment** - Updated package version to 1.11.3 to match guardz ecosystem version
+- **Dependency Upgrade** - Upgraded guardz peer dependency from ^1.9.0 to ^1.11.3
+- **Enhanced Type Safety** - Leveraging new guardz 1.11.3 features for improved type validation
+- **Performance Improvements** - Utilizing guardz 1.11.3 optimizations for better runtime performance
+- **Ecosystem Alignment** - Maintains compatibility with latest guardz ecosystem packages
+
+### Added 🎉
+
+- **New Type Guard Support** - Added support for new guardz 1.11.3 type guards:
+  - `isSchema` - Schema-based validation for complex objects
+  - `isShape` - Shape-based validation with automatic data transformation
+  - `isObjectWith` - Validate objects with specific properties
+  - `isNestedType` - Handle nested type validation
+  - `isIndexSignature` - Validate objects with index signatures
+
+- **Data Transformation Utilities** - Support for new guardz 1.11.3 transformation functions:
+  - `toNumber` - Convert and validate numbers from strings
+  - `toDate` - Convert and validate Date objects from strings
+  - `toBoolean` - Convert and validate booleans from various types
+
+- **Enhanced Documentation** - Updated README with examples showcasing new guardz 1.11.3 features
+- **Improved Use Cases** - Added examples demonstrating data transformation and schema validation
+
+### Security 🔒
+
+- **Enhanced Security Validation** - Improved security validation with guardz 1.11.3 features
+- **Better Error Handling** - Enhanced error handling with updated guardz APIs
+
 ## [1.9.0] - 2024-12-19
 
 ### Changed 🔄

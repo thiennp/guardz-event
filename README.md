@@ -1,6 +1,6 @@
 # Guardz Event - Safe Event Handling Library
 
-A modern, type-safe event handling library that provides multiple ergonomic APIs for handling browser events with validation, security checks, and error handling. Built on top of [guardz 1.9.0](https://www.npmjs.com/package/guardz) for robust runtime type validation.
+A modern, type-safe event handling library that provides multiple ergonomic APIs for handling browser events with validation, security checks, and error handling. Built on top of [guardz 1.11.3](https://www.npmjs.com/package/guardz) for robust runtime type validation.
 
 ## 🚀 Quick Start
 
@@ -184,14 +184,18 @@ window.addEventListener('message', onMessage(isChatMessage, {
 
 ## 📝 Type Guards
 
-Create type guards for your data structures:
+Create type guards for your data structures using Guardz 1.11.3's enhanced type validation:
+
+### Basic Type Guards
 
 ```typescript
+import { isString, isNumber, isBoolean, isObject } from 'guardz';
+
 // Simple object validation
 const isUserData = (data: unknown): data is { id: number; name: string } => {
-  return typeof data === 'object' && data !== null &&
-         typeof (data as any).id === 'number' &&
-         typeof (data as any).name === 'string';
+  return isObject(data) && 
+         isNumber((data as any).id) && 
+         isString((data as any).name);
 };
 
 // Complex validation with nested objects
@@ -200,17 +204,51 @@ const isOrderData = (data: unknown): data is {
   items: Array<{ productId: string; quantity: number }>;
   total: number;
 } => {
-  if (typeof data !== 'object' || data === null) return false;
+  if (!isObject(data)) return false;
   const order = data as any;
   
-  return typeof order.id === 'string' &&
+  return isString(order.id) &&
          Array.isArray(order.items) &&
          order.items.every((item: any) => 
-           typeof item.productId === 'string' && 
-           typeof item.quantity === 'number'
+           isString(item.productId) && 
+           isNumber(item.quantity)
          ) &&
-         typeof order.total === 'number';
+         isNumber(order.total);
 };
+```
+
+### Advanced Type Guards (New in Guardz 1.11.3)
+
+```typescript
+import { isSchema, isShape, isObjectWith, toNumber, toDate } from 'guardz';
+
+// Schema-based validation
+const userSchema = {
+  id: isNumber,
+  name: isString,
+  email: isString,
+  isActive: isBoolean
+};
+
+const isUser = isSchema(userSchema);
+
+// Shape-based validation with transformations
+const isOrderWithTransform = isShape({
+  id: isString,
+  amount: toNumber,  // Automatically converts string to number
+  createdAt: toDate, // Automatically converts string to Date
+  items: isArrayWithEachItem(isObjectWith({
+    productId: isString,
+    quantity: isNumber
+  }))
+});
+
+// Object with specific properties
+const isApiResponse = isObjectWith({
+  success: isBoolean,
+  data: isObject,
+  message: isString
+});
 ```
 
 ## 🔄 Migration from Legacy API
@@ -239,15 +277,36 @@ window.addEventListener('message', onMessage(isChatMessage, {
 }));
 ```
 
+## 🆕 What's New in Guardz 1.11.3
+
+This version includes several new features and improvements:
+
+### New Type Guards
+- **`isSchema`** - Schema-based validation for complex objects
+- **`isShape`** - Shape-based validation with automatic data transformation
+- **`isObjectWith`** - Validate objects with specific properties
+- **`isNestedType`** - Handle nested type validation
+- **`isIndexSignature`** - Validate objects with index signatures
+
+### New Utility Functions
+- **`toNumber`** - Convert and validate numbers from strings
+- **`toDate`** - Convert and validate Date objects from strings
+- **`toBoolean`** - Convert and validate booleans from various types
+
+### Enhanced Validation
+- Better error messages and debugging information
+- Improved performance for complex validations
+- More flexible type checking options
+
 ## 📦 Installation
 
 ```bash
-npm install guardz-event guardz
+npm install guardz-event guardz@^1.11.3
 # or
-yarn add guardz-event guardz
+yarn add guardz-event guardz@^1.11.3
 ```
 
-**Note**: This library requires `guardz` as a peer dependency for runtime type validation.
+**Note**: This library requires `guardz` version 1.11.3 or higher as a peer dependency for runtime type validation.
 
 ## 📦 Bundle Size
 
@@ -259,45 +318,116 @@ The library is designed to be tree-shakeable. Only the APIs you use will be incl
 
 ## 🎯 Use Cases
 
-### 1. **PostMessage Communication**
+### 1. **PostMessage Communication with Data Transformation**
 ```typescript
-// Parent window
-const iframe = document.querySelector('iframe');
-iframe.contentWindow.postMessage({ type: 'chat', text: 'Hello' }, '*');
+import { onMessage } from 'guardz-event';
+import { isShape, toNumber, toDate } from 'guardz';
 
-// Child window
-window.addEventListener('message', onMessage(isChatMessage, {
+// Handle messages with automatic data transformation
+const isOrderMessage = isShape({
+  orderId: isString,
+  amount: toNumber,      // Converts string to number
+  timestamp: toDate,     // Converts string to Date
+  items: isArrayWithEachItem(isObjectWith({
+    productId: isString,
+    quantity: toNumber
+  }))
+});
+
+window.addEventListener('message', onMessage(isOrderMessage, {
   onSuccess: (data) => {
-    if (data.type === 'chat') {
-      displayMessage(data.text);
+    // data.amount is now a number, data.timestamp is a Date
+    console.log(`Order ${data.orderId}: $${data.amount} at ${data.timestamp}`);
+  }
+}));
+```
+
+### 2. **API Response Validation**
+```typescript
+import { onMessage } from 'guardz-event';
+import { isSchema, isObjectWith } from 'guardz';
+
+const apiResponseSchema = {
+  success: isBoolean,
+  data: isObject,
+  message: isString
+};
+
+const isApiResponse = isSchema(apiResponseSchema);
+
+window.addEventListener('message', onMessage(isApiResponse, {
+  onSuccess: (response) => {
+    if (response.success) {
+      handleApiData(response.data);
+    } else {
+      showError(response.message);
     }
   }
 }));
 ```
 
-### 2. **Form Validation**
 ```typescript
-const isFormData = (data: unknown): data is { email: string; name: string } => {
-  return typeof data === 'object' && data !== null &&
-         typeof (data as any).email === 'string' &&
-         typeof (data as any).name === 'string';
-};
+import { onClick } from 'guardz-event';
+import { isShape, isEmail, toNumber } from 'guardz';
+
+// Enhanced form validation with automatic type conversion
+const isFormData = isShape({
+  email: isEmail,           // Validates email format
+  name: isString,
+  age: toNumber,            // Converts string to number
+  preferences: isObjectWith({
+    newsletter: isBoolean,
+    notifications: isBoolean
+  })
+});
 
 form.addEventListener('submit', onClick(isFormData, {
-  onSuccess: (data) => submitForm(data),
+  onSuccess: (data) => {
+    // data.age is now a number, data.email is validated
+    submitForm(data);
+  },
   onTypeMismatch: (error) => showValidationError(error)
 }));
 ```
 
-### 3. **Custom Events**
+### 4. **Custom Events with Schema Validation**
 ```typescript
-const isUserAction = (data: unknown): data is { action: string; payload: any } => {
-  return typeof data === 'object' && data !== null &&
-         typeof (data as any).action === 'string';
+import { onCustom } from 'guardz-event';
+import { isSchema } from 'guardz';
+
+const userActionSchema = {
+  action: isString,
+  payload: isObject,
+  timestamp: toDate
 };
 
+const isUserAction = isSchema(userActionSchema);
+
 document.addEventListener('user-action', onCustom('user-action', isUserAction, {
-  onSuccess: (data) => handleUserAction(data.action, data.payload)
+  onSuccess: (data) => {
+    // data.timestamp is now a Date object
+    handleUserAction(data.action, data.payload, data.timestamp);
+  }
+}));
+```
+
+### 5. **Storage Events with Enhanced Validation**
+```typescript
+import { onStorage } from 'guardz-event';
+import { isShape, toNumber, toBoolean } from 'guardz';
+
+const isStorageData = isShape({
+  key: isString,
+  value: isString,
+  oldValue: isString,
+  timestamp: toNumber
+});
+
+window.addEventListener('storage', onStorage(isStorageData, {
+  onSuccess: (data) => {
+    // data.timestamp is now a number
+    handleStorageChange(data.key, data.value, data.oldValue, data.timestamp);
+  }
 }));
 ```
 
